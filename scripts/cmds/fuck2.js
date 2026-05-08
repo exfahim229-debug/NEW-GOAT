@@ -8,7 +8,7 @@ module.exports = {
     name: "fuck2",
     aliases: ["fck2"],
     version: "3.2",
-    author: "MOHAMMAD AKASH",
+    author: "MR_FARHAN",
     countDown: 5,
     role: 0,
     description: "Overlay two users’ avatars on another NSFW image template (fun only)",
@@ -17,19 +17,27 @@ module.exports = {
 
   onStart: async function ({ message, event }) {
     try {
-      const mention = Object.keys(event.mentions);
-      if (mention.length === 0)
-        return message.reply("⚠️ Please mention 1 person to use this command!");
+      let one = event.senderID;
+      let two;
 
-      const one = event.senderID;
-      const two = mention[0];
+      // ✅ Reply support
+      if (event.type === "message_reply") {
+        two = event.messageReply.senderID;
+      }
+
+      // ✅ Mention support
+      const mention = Object.keys(event.mentions || {});
+      if (!two) {
+        if (mention.length === 0)
+          return message.reply("⚠️ Please mention or reply to someone!");
+        two = mention[0];
+      }
 
       const dir = path.join(__dirname, "cache");
       if (!fs.existsSync(dir)) fs.mkdirSync(dir);
 
       const bgPath = path.join(dir, "fuckv3_template.png");
 
-      // Download background if not exists
       if (!fs.existsSync(bgPath)) {
         const img = await axios.get(
           "https://i.ibb.co/TW9Kbwr/images-2022-08-14-T183542-356.jpg",
@@ -52,17 +60,16 @@ module.exports = {
       await getAvatar(one, avatar1);
       await getAvatar(two, avatar2);
 
-      // Load images
       const bg = await loadImage(bgPath);
       const av1 = await loadImage(avatar1);
       const av2 = await loadImage(avatar2);
 
       const canvas = createCanvas(bg.width, bg.height);
       const ctx = canvas.getContext("2d");
+
       ctx.drawImage(bg, 0, 0, bg.width, bg.height);
 
-      // Draw circular avatars
-      // Avatar 1 (bottom left)
+      // Avatar 1
       ctx.save();
       ctx.beginPath();
       ctx.arc(70, 350, 50, 0, Math.PI * 2, true);
@@ -71,7 +78,7 @@ module.exports = {
       ctx.drawImage(av1, 20, 300, 100, 100);
       ctx.restore();
 
-      // Avatar 2 (top right)
+      // Avatar 2
       ctx.save();
       ctx.beginPath();
       ctx.arc(175, 95, 75, 0, Math.PI * 2, true);
@@ -85,17 +92,16 @@ module.exports = {
       fs.writeFileSync(outPath, buffer);
 
       await message.reply({
-        body: "💥 Done!",
+        body: "উফ বেবি আস্তে চুদো।👅 ব্যথা পাবে তো। 🥵🤭",
         attachment: fs.createReadStream(outPath),
       });
 
-      // Cleanup
       fs.unlinkSync(avatar1);
       fs.unlinkSync(avatar2);
       fs.unlinkSync(outPath);
     } catch (err) {
       console.error(err);
-      return message.reply(`❌ Error while generating image: ${err.message}`);
+      return message.reply(`❌ Error: ${err.message}`);
     }
   },
 };
