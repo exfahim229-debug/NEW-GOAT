@@ -1,53 +1,78 @@
-const axios = require('axios'); // ✅ Axios সরাসরি import করা হয়েছে
+const axios = require("axios");
+
+const baseApiUrl = async () => {
+        const base = await axios.get("https://raw.githubusercontent.com/mahmudx7/HINATA/main/baseApiUrl.json");
+        return base.data.mahmud;
+};
 
 module.exports = {
-  config: {
-    name: "imgur",
-    version: "1.0.2",
-    author: "MOHAMMAD AKASH",
-    role: 0,
-    shortDescription: "Upload image/video/GIF to Imgur and get direct links",
-    longDescription: "Reply to any image, video, or GIF to upload it to Imgur and get the link.",
-    category: "other",
-    guide: "[reply with any media file]",
-    cooldowns: 0
-  },
+        config: {
+                name: "imgur",
+                aliases: ["i"],
+                version: "1.8",
+                author: "MahMUD",
+                countDown: 10,
+                role: 0,
+                description: {
+                        bn: "যেকোনো ছবি বা ভিডিওকে Imgur লিঙ্কে রূপান্তর করুন",
+                        en: "Convert any image or video into an Imgur link",
+                        vi: "Chuyển đổi bất kỳ hình ảnh hoặc video nào thành liên kết Imgur"
+                },
+                category: "tools",
+                guide: {
+                        bn: '   {pn}: মিডিয়া ফাইলে রিপ্লাই দিয়ে ব্যবহার করুন',
+                        en: '   {pn}: Reply to a media file to get the link',
+                        vi: '   {pn}: Phản hồi tệp phương tiện để lấy liên kết'
+                }
+        },
 
-  onStart: async function ({ api, event }) {
-    // Get API link from JSON
-    let Shaon;
-    try {
-      const apis = await axios.get('https://raw.githubusercontent.com/shaonproject/Shaon/main/api.json');
-      Shaon = apis.data.imgur;
-    } catch {
-      return api.sendMessage("❌ Failed to fetch Imgur API link!", event.threadID, event.messageID);
-    }
+        langs: {
+                bn: {
+                        noMedia: "× বেবি, একটি ছবি বা ভিডিওতে রিপ্লাই দাও!",
+                        error: "× সমস্যা হয়েছে: %1। প্রয়োজনে Contact MahMUD|\n•WhatsApp: 01836298139"
+                },
+                en: {
+                        noMedia: "× Baby, please reply to a media file!",
+                        error: "× API error: %1. Contact MahMUD for help.\n•WhatsApp: 01836298139"
+                },
+                vi: {
+                        noMedia: "× Cưng ơi, hãy phản hồi một tệp phương tiện!",
+                        error: "× Lỗi: %1. Liên hệ MahMUD để hỗ trợ.\n•WhatsApp: 01836298139"
+                }
+        },
 
-    const reply = event.messageReply;
-    if (!reply || !reply.attachments || reply.attachments.length === 0) {
-      return api.sendMessage(
-        "Please reply to the image or video with the command Imgur...!✅",
-        event.threadID,
-        event.messageID
-      );
-    }
+        onStart: async function ({ api, event, message, getLang }) {
+                const authorName = String.fromCharCode(77, 97, 104, 77, 85, 68);
+                if (this.config.author !== authorName) {
+                        return api.sendMessage("You are not authorized to change the author name.", event.threadID, event.messageID);
+                }
 
-    const links = [];
+                if (event.type !== "message_reply" || !event.messageReply.attachments.length) {
+                        return message.reply(getLang("noMedia"));
+                }
 
-    for (const attachment of reply.attachments) {
-      try {
-        const url = encodeURIComponent(attachment.url);
-        const upload = await axios.get(`${Shaon}/imgur?link=${url}`);
-        links.push(upload.data.uploaded.image || "❌ No link received");
-      } catch (e) {
-        links.push("❌ Failed to upload");
-      }
-    }
+                try {
+                        api.setMessageReaction("⏳", event.messageID, () => {}, true);
 
-    const messageToSend = links.length === 1
-      ? links[0]
-      : `✅ Uploaded files Imgur links:\n\n${links.join("\n")}`;
+                        const attachmentUrl = event.messageReply.attachments[0].url;
+                        const baseUrl = await baseApiUrl();
+                        
+                        const response = await axios.get(`${baseUrl}/api/imgur`, {
+                                params: {
+                                        url: attachmentUrl
+                                }
+                        });
 
-    return api.sendMessage(messageToSend, event.threadID, event.messageID);
-  }
+                        const replyLink = response.data.link || "No link received.";
+                        api.setMessageReaction("✅", event.messageID, () => {}, true);
+
+                        return message.reply(replyLink);
+
+                } catch (err) {
+                        console.error("Imgur Error:", err);
+                        api.setMessageReaction("❌", event.messageID, () => {}, true);
+                        const errorMsg = err.response?.data?.error || err.message;
+                        return message.reply(getLang("error", errorMsg));
+                }
+        }
 };
