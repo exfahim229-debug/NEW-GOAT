@@ -29,15 +29,15 @@ module.exports = {
         langs: {
                 bn: {
                         noMedia: "× বেবি, একটি ছবি বা ভিডিওতে রিপ্লাই দাও!",
-                        error: "× সমস্যা হয়েছে: %1। প্রয়োজনে Contact MahMUD।\n•WhatsApp: 01836298139"
+                        error: "× সমস্যা হয়েছে: %1। প্রয়োজনে Contact Farhan।\n•WhatsApp: 01934640061"
                 },
                 en: {
                         noMedia: "× Baby, please reply to a media file!",
-                        error: "× API error: %1. Contact MahMUD for help.\n•WhatsApp: 01836298139"
+                        error: "× API error: %1. Contact Farhan for help.\n•WhatsApp: 01934640061"
                 },
                 vi: {
                         noMedia: "× Cưng ơi, hãy phản hồi một tệp phương tiện!",
-                        error: "× Lỗi: %1. Liên hệ MahMUD để hỗ trợ.\n•WhatsApp: 01836298139"
+                        error: "× Lỗi: %1. Liên hệ Farhan để hỗ trợ.\n•WhatsApp: 01934640061"
                 }
         },
 
